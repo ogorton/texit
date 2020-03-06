@@ -1,0 +1,53 @@
+# Script to autocompile latex documents
+# by detecting a change in file size.
+
+#Oliver Chauncey Gorton
+
+# Counting variables
+tmpfilesize=0 
+compiles=0
+slptime=1.0
+#Get user file
+file=$1
+#No file found
+if [ $# -eq 0 ]
+then
+	echo "Please provide an input .tex file!"
+	exit
+fi
+# Echo inputs
+echo Input:   $file
+echo Opening: $file'.pdf'
+file=$file'.tex'
+echo Texing: $file
+
+# Initialize
+tmpfilesize=($(stat -f%z $file))
+echo "File size: " $tmpfilesize
+while true; do
+
+        fsize=($(stat -f%z $file))
+
+        # Detect change in source file
+        if [ $fsize -ne $tmpfilesize ]
+	then
+	        if { # try double compile
+                    pdflatex -halt-on-error ./$file > texit.log;
+                    pdflatex -halt-on-error ./$file > texit.out;
+                } 
+		then { # success
+                    echo "Compile success at "$(date);
+                    ((compiles++))
+                    rm *.log *.aux
+                }
+                else  { # catch
+                    echo "Compile failed."
+                }
+                fi
+                echo "Compiles: $compiles"
+	fi
+
+        tmpfilesize=$fsize
+	sleep $slptime
+
+done

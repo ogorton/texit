@@ -1,0 +1,15 @@
+Place the script execuatble in your bin directory in order to access it anywhere in the system.
+
+Example usage:
+
+user/home/dir$ 
+user/home/dir$ 
+user/home/dir$ ls
+exampledoc.tex
+user/home/dir$ texit exampledoc
+Input: exampledoc
+Opening: exampledoc.pdf
+Texing: exampledoc.tex
+File size:  2679
+Compile success at Fri Mar 6 12:09:06 PST 2020
+Compiles: 1

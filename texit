@@ -1,38 +1,53 @@
 # Script to autocompile latex documents
-# by detecting a change in file size.
+# by detecting a change in filebasename status.
 
-#Oliver Chauncey Gorton
+# Author: Oliver Chauncey Gorton
 
 # Counting variables
 stattime=0 
 compiles=0
-slptime=1.0
-#Get user file
-file=$1
-#No file found
+slptime=1.0 # Time to wait between status checks
+
+#Verbose mode = 1
+verbose=1
+#Get user filebasename from command line
+filebasename=$1 
+
+#No filebasename found on command line, request from user.
 if [ $# -eq 0 ]
 then
-	echo "Please provide an input .tex file!"
-	exit
+	echo "Please provide an input .tex file (ommit .tex)":
+	read filebasename
 fi
-# Echo inputs
-echo Input:   $file
-echo Opening: $file'.pdf'
-file=$file'.tex'
-echo Texing: $file
 
+# Echo inputs
+echo Input:   $filebasename
+
+# Check for existence of file
+if [[ -f "$filebasename.tex" ]]
+then
+    filebasename=$filebasename'.tex'
+    echo Texing: $filebasename
+else
+    echo "$filebasename.tex not found"
+    return 1
+fi
 # Initialize
-stattime=($(stat -c %Z $file))
+stattime=($(stat -c %Z $filebasename))
 while true; do
 
-        stattimenew=($(stat -c %Z $file))
+        stattimenew=($(stat -c %Z $filebasename))
+	if [[ $verbose ]]; then 
+		echo $stattimenew 
+	fi
 
-        # Detect change in source file
+        # Detect change in source filebasename
         if [ $stattimenew -ne $stattime ]
 	then
 	        if { # try double compile
-                    pdflatex -halt-on-error ./$file > texit.log;
-                    pdflatex -halt-on-error ./$file > texit.out;
+		    echo "Compiling..."
+                    pdflatex -halt-on-error ./$filebasename > texit.log;
+                    pdflatex -halt-on-error ./$filebasename > texit.out;
                 } 
 		then { # success
                     echo "Compile success at "$(date);

@@ -6,20 +6,44 @@
 # Counting variables
 stattime=0 
 compiles=0
+
+# Settings
+bg=0 # If 1, run script in the background.
+runtime=9999 # If >0, max time to run
 slptime=1.0 # Time to wait between status checks
 
+usage()
+{
+	echo "texit [basefilename] [options]"
+}
+
 #Get user filebasename from command line
-filebasename=$1 
+filebasename=$1
 
 #No filebasename found on command line, request from user.
 if [ $# -eq 0 ]
 then
-	echo "Please provide an input .tex file (ommit .tex)":
-	read filebasename
+        echo "Please provide an input .tex file (ommit .tex)":
+        read filebasename
 fi
 
-# Echo inputs
-echo Input:   $filebasename
+# Check option flags
+while [ "$1" != "" ]; do
+    case $1 in
+        -h | --help )           usage
+                                exit
+                                ;;
+        -bg | --background )    bg=1
+				runtime=9999
+                                ;;
+        -t | --timeout )        shift
+                                runtime=$1
+                                ;;
+        * )                     echo "problem."
+                                
+    esac
+    shift
+done
 
 # Check for existence of file
 if [[ -f "$filebasename.tex" ]]
@@ -30,8 +54,11 @@ else
     echo "$filebasename.tex not found"
     return 1
 fi
+
 # Initialize
 stattime=($(stat -c %Z $filebasename))
+
+{ # Main task
 while true; do
 
         stattimenew=($(stat -c %Z $filebasename))
@@ -54,9 +81,14 @@ while true; do
                 }
                 fi
                 echo "Compiles: $compiles"
+		sleep 2 # wait extra time after compile
 	fi
 
         stattime=$stattimenew
 	sleep $slptime
 
 done
+} &
+TASK_PID=$1 # Get main task ID
+sleep $runtime # Wait for max runtime
+kill $TASK_PID # Kill main task once runtime exceeded

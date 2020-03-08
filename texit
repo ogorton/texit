@@ -8,8 +8,6 @@ stattime=0
 compiles=0
 slptime=1.0 # Time to wait between status checks
 
-#Verbose mode = 1
-verbose=1
 #Get user filebasename from command line
 filebasename=$1 
 
@@ -37,9 +35,6 @@ stattime=($(stat -c %Z $filebasename))
 while true; do
 
         stattimenew=($(stat -c %Z $filebasename))
-	if [[ $verbose ]]; then 
-		echo $stattimenew 
-	fi
 
         # Detect change in source filebasename
         if [ $stattimenew -ne $stattime ]

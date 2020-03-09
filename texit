@@ -14,7 +14,7 @@ slptime=1.0 # Time to wait between status checks
 
 usage()
 {
-	echo "texit [basefilename] [options]"
+    echo "texit [basefilename] [options]"
 }
 
 #Get user filebasename from command line
@@ -34,12 +34,11 @@ while [ "$1" != "" ]; do
                                 exit
                                 ;;
         -bg | --background )    bg=1
-				runtime=9999
                                 ;;
         -t | --timeout )        shift
                                 runtime=$1
                                 ;;
-        * )                     echo "problem."
+        * )                    
                                 
     esac
     shift
@@ -61,34 +60,41 @@ stattime=($(stat -c %Z $filebasename))
 { # Main task
 while true; do
 
-        stattimenew=($(stat -c %Z $filebasename))
+    stattimenew=($(stat -c %Z $filebasename))
 
-        # Detect change in source filebasename
-        if [ $stattimenew -ne $stattime ]
-	then
-	        if { # try double compile
-		    echo "Compiling..."
-                    pdflatex -halt-on-error ./$filebasename > texit.log;
-                    pdflatex -halt-on-error ./$filebasename > texit.out;
-                } 
-		then { # success
-                    echo "Compile success at "$(date);
-                    ((compiles++))
-                    rm *.log *.aux
-                }
-                else  { # catch
-                    echo "Compile failed."
-                }
-                fi
-                echo "Compiles: $compiles"
-		sleep 2 # wait extra time after compile
-	fi
-
-        stattime=$stattimenew
-	sleep $slptime
-
+    # Detect change in source filebasename
+    if [ $stattimenew -ne $stattime ]; then
+        if { # try double compile
+            pdflatex -halt-on-error ./$filebasename > texit.log;
+            pdflatex -halt-on-error ./$filebasename > texit.out;
+        }; then { # success
+            ((compiles++))
+            if [ $bg -eq 0 ]; then
+                echo "Compile #$compiles success at "$(date)
+            fi
+            rm *.log *.aux
+        }; else  { # catch
+            echo "Compile failed."
+        }
+        fi
+        sleep 2 # wait extra time after compile
+    fi
+    stattime=$stattimenew
+    sleep $slptime
 done
-} &
-TASK_PID=$1 # Get main task ID
-sleep $runtime # Wait for max runtime
-kill $TASK_PID # Kill main task once runtime exceeded
+} & disown
+echo $!
+TASK_PID=$! # Get main task ID
+if [ $bg -eq 1 ] 
+then
+{
+    echo "Running in background. See you in $runtime seconds!"
+    sleep $runtime  
+    echo "Texit done." 
+    kill $TASK_PID 
+} & disown
+else
+    sleep $runtime # Wait for max runtime
+    echo "Texit done."
+    kill $TASK_PID
+fi

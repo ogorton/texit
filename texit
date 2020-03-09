@@ -83,7 +83,6 @@ while true; do
     sleep $slptime
 done
 } & disown
-echo $!
 TASK_PID=$! # Get main task ID
 if [ $bg -eq 1 ] 
 then

@@ -1,3 +1,5 @@
+# MacOS edition.
+
 # Script to autocompile latex documents
 # by detecting a change in filebasename status.
 
@@ -55,12 +57,34 @@ else
 fi
 
 # Initialize
-stattime=($(stat -c %Z $filebasename))
+# If this command doesn't work something's not right.
+if {
+    fmt='-c %Z'    
+    echo "Trying linux initialization."
+    stattime=($(stat $fmt $filebasename)) #Linux
+}; then { 
+    echo "Initialize success."
+}; else {
+    echo "Initialize failed."
+    echo "Trying macOS initialization."
+    fmt='-f %c'
+    
+    if {
+        stattime=($(stat $fmt $filebasename)) #macOS
+    }; then {
+        echo "Initialization success."
+    }; else {
+        echo "Initialization failed. Incompatible stat command!"
+    }
+    fi
+
+}
+fi
 
 { # Main task
 while true; do
 
-    stattimenew=($(stat -c %Z $filebasename))
+    stattimenew=($(stat $fmt $filebasename))
 
     # Detect change in source filebasename
     if [ $stattimenew -ne $stattime ]; then

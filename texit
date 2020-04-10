@@ -43,7 +43,7 @@ then
     texfile=$filebasename'.tex'
     echo Texing: $texfile
 else
-    echo "$texfile not found"
+    echo "$filebasename.tex not found"
     exit -1
 fi
 
@@ -56,7 +56,7 @@ if {
 }; then { 
     echo "Initialize success."
 }; else {
-    echo "Initialize failed."
+    echo "Unable to initialize."
     echo "Trying macOS initialization."
     fmt='-f %c'
     
@@ -75,7 +75,7 @@ fi
 { # Main task
 while true; do
 
-    stattimenew=($(stat $fmt $texfile))
+    [[ -f $texfile ]] &&  stattimenew=($(stat $fmt $texfile))
 
     # Detect change in source texfile
     if [ $stattimenew -ne $stattime ]; then

@@ -53,7 +53,7 @@ then
     echo Texing: $filebasename
 else
     echo "$filebasename.tex not found"
-    return 1
+    exit -1
 fi
 
 # Initialize
@@ -106,18 +106,5 @@ while true; do
     stattime=$stattimenew
     sleep $slptime
 done
-} & disown
-TASK_PID=$! # Get main task ID
-if [ $bg -eq 1 ] 
-then
-{
-    echo "Running in background. See you in $runtime seconds!"
-    sleep $runtime  
-    echo "Texit done." 
-    kill $TASK_PID 
-} & disown
-else
-    sleep $runtime # Wait for max runtime
-    echo "Texit done."
-    kill $TASK_PID
-fi
+} 
+echo "Texit done."

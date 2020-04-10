@@ -1,17 +1,13 @@
-# MacOS edition.
-
 # Script to autocompile latex documents
-# by detecting a change in filebasename status.
+# by detecting a change in texfile status.
 
-# Author: Oliver Chauncey Gorton
+# Author: Oliver Gorton
 
 # Counting variables
 stattime=0 
 compiles=0
 
 # Settings
-bg=0 # If 1, run script in the background.
-runtime=9999 # If >0, max time to run
 slptime=1.0 # Time to wait between status checks
 
 usage()
@@ -19,10 +15,10 @@ usage()
     echo "texit [basefilename] [options]"
 }
 
-#Get user filebasename from command line
+#Get user texfile from command line
 filebasename=$1
 
-#No filebasename found on command line, request from user.
+#No texfile found on command line, request from user.
 if [ $# -eq 0 ]
 then
         echo "Please provide an input .tex file (ommit .tex)":
@@ -35,11 +31,6 @@ while [ "$1" != "" ]; do
         -h | --help )           usage
                                 exit
                                 ;;
-        -bg | --background )    bg=1
-                                ;;
-        -t | --timeout )        shift
-                                runtime=$1
-                                ;;
         * )                    
                                 
     esac
@@ -49,10 +40,10 @@ done
 # Check for existence of file
 if [[ -f "$filebasename.tex" ]]
 then
-    filebasename=$filebasename'.tex'
-    echo Texing: $filebasename
+    texfile=$filebasename'.tex'
+    echo Texing: $texfile
 else
-    echo "$filebasename.tex not found"
+    echo "$texfile not found"
     exit -1
 fi
 
@@ -61,7 +52,7 @@ fi
 if {
     fmt='-c %Z'    
     echo "Trying linux initialization."
-    stattime=($(stat $fmt $filebasename)) #Linux
+    stattime=($(stat $fmt $texfile)) #Linux
 }; then { 
     echo "Initialize success."
 }; else {
@@ -70,7 +61,7 @@ if {
     fmt='-f %c'
     
     if {
-        stattime=($(stat $fmt $filebasename)) #macOS
+        stattime=($(stat $fmt $texfile)) #macOS
     }; then {
         echo "Initialization success."
     }; else {
@@ -84,18 +75,16 @@ fi
 { # Main task
 while true; do
 
-    stattimenew=($(stat $fmt $filebasename))
+    stattimenew=($(stat $fmt $texfile))
 
-    # Detect change in source filebasename
+    # Detect change in source texfile
     if [ $stattimenew -ne $stattime ]; then
         if { # try double compile
-            pdflatex -halt-on-error ./$filebasename > $filebasename.texit;
-            pdflatex -halt-on-error ./$filebasename > $filebasename.texit;
+            pdflatex -halt-on-error ./$texfile > $filebasename.texit;
+            pdflatex -halt-on-error ./$texfile > $filebasename.texit;
         }; then { # success
             ((compiles++))
-            if [ $bg -eq 0 ]; then
-                echo "Compile #$compiles success at "$(date)
-            fi
+            echo "Compile #$compiles success at "$(date)"."
             rm *.log *.aux
         }; else  { # catch
             echo "Compile failed."
@@ -107,4 +96,3 @@ while true; do
     sleep $slptime
 done
 } 
-echo "Texit done."

@@ -89,8 +89,8 @@ while true; do
     # Detect change in source filebasename
     if [ $stattimenew -ne $stattime ]; then
         if { # try double compile
-            pdflatex -halt-on-error ./$filebasename > texit.log;
-            pdflatex -halt-on-error ./$filebasename > texit.out;
+            pdflatex -halt-on-error ./$filebasename > $filebasename.texit;
+            pdflatex -halt-on-error ./$filebasename > $filebasename.texit;
         }; then { # success
             ((compiles++))
             if [ $bg -eq 0 ]; then
